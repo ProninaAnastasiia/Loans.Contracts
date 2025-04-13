@@ -37,9 +37,13 @@ public class CreateContractRequestedHandler : ICreateContractRequestedHandler
             var topic = _config["Kafka:Topics:DraftContractCreated"];
             await _producer.PublishAsync(topic, jsonMessage);
         }
-        catch (Exception)
+        catch (Exception e)
         {
             _logger.LogError("Failed to create contract. OperationId: {request.OperationId}", request.OperationId);
+            var @event = new CreateContractFailedEvent(request.OperationId, e.Message);
+            var jsonMessage = JsonConvert.SerializeObject(@event);
+            var topic = _config["Kafka:Topics:CreateContractFailed"];
+            await _producer.PublishAsync(topic, jsonMessage);
         }
     }
 }
