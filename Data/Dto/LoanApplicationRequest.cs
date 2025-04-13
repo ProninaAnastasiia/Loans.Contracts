@@ -29,9 +29,5 @@ public class LoanApplicationRequest
 
     public decimal? InitialPaymentAmount { get; set; }
     
-    public Pawn? Pawn { get; set; }
-    
-    public Insurance? Insurance { get; set; }
-    
     public string OperationId { get; set; }
 }

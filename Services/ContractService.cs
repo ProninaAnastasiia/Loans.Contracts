@@ -1,58 +1,97 @@
-﻿using Loans.Contracts.Data;
-using Loans.Contracts.Data.Dto;
+﻿using AutoMapper;
+using Loans.Contracts.Data;
 using Loans.Contracts.Data.Models;
-using Loans.Contracts.Kafka;
 using Loans.Contracts.Kafka.Events;
+using Microsoft.EntityFrameworkCore;
 
 namespace Loans.Contracts.Services;
 
 public class ContractService : IContractService
 {
-    private readonly LoanContractContext _dbContext;
+    private readonly LoanContractDbContext _dbContext;
+    private readonly ILogger<ContractService> _logger;
+    private readonly IMapper _mapper;
 
-    public ContractService(LoanContractContext dbContext)
+    public ContractService(LoanContractDbContext dbContext, ILogger<ContractService> logger, IMapper mapper)
     {
         _dbContext = dbContext;
+        _logger = logger;
+        _mapper = mapper;
     }
 
-    public async Task<Contract> CreateContractAsync(CreateContractRequestedEvent loanApplicationRequest, Guid operationId)
+    public async Task<Contract> CreateContractAsync(CreateContractRequestedEvent request, CancellationToken cancellationToken)
     {
-        // Генерация уникального ID для контракта
-        var contractId = Guid.NewGuid();
-
-        // Создаем черновик контракта
-        var contract = new Contract();
-
-        // Добавляем залог
-        if (loanApplicationRequest.Pawn != null)
+        try
         {
-            contract.Pawn = new Pawn
+            var newContract = _mapper.Map<Contract>(request);
+            var existingContract = await _dbContext.Contracts.FirstOrDefaultAsync(u => u.OperationId.Equals(newContract.OperationId));
+            
+            if (existingContract == null)
             {
-                Type = loanApplicationRequest.Pawn.Type,
-                Description = loanApplicationRequest.Pawn.Description,
-                PawnAmount = loanApplicationRequest.Pawn.PawnAmount
-            };
-        }
+                newContract.ContractStatus = "Черновик";
+                
+                if (newContract.LoanType.Equals("Ипотека") || newContract.LoanType.Equals("Автокредит"))
+                {
+                    var pawn = new Pawn
+                    {
+                        PawnId = Guid.NewGuid(),
+                        PawnAmount = newContract.LoanAmount
+                    };
 
-        // Добавляем страховку
-        if (loanApplicationRequest.Insurance != null)
+                    switch (newContract.LoanType)
+                    {
+                        case "Ипотека":
+                            pawn.Type = "Недвижимость";
+                            pawn.Description = "Квартира/Дом";
+                            break;
+                        case "Автокредит":
+                            pawn.Type = "Транспортное средство";
+                            pawn.Description = "Автомобиль";
+                            break;
+                        default:
+                            pawn.Type = "Не определено";
+                            pawn.Description = "Тип кредита не поддерживается для залога";
+                            _logger.LogWarning("Неподдерживаемый тип кредита для залога: {LoanType}", newContract.LoanType);
+                            break;
+                    }
+                    _dbContext.Pawns.Add(pawn); 
+                    newContract.Pawn = pawn;
+                }
+
+                var insurance = new Insurance
+                {
+                    InsuranceId = Guid.NewGuid(),
+                    Description = "Добровольная страховка",
+                    Amount = newContract.LoanAmount * (decimal)0.2,
+                    Company = "ООО Согаз"
+                };
+                _dbContext.Insurances.Add(insurance);
+                
+                newContract.Insurance = insurance;
+                newContract.AdditionalTerms = "Дополнительные условия: Досрочное погашение разрешено на сумму не менее половины от запланированного ежемесячного платежа.";
+                newContract.LastModificationDate = DateTime.UtcNow;
+                
+                _dbContext.Contracts.Add(newContract);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                
+                _logger.LogInformation("Контракт создан: {ContractId}", newContract.ContractId);
+            }
+            else
+            {
+                if (newContract.OperationId.Equals(existingContract.OperationId))
+                {
+                    _logger.LogWarning("Повторная попытка создать контракт по OperationId: {OperationId}", existingContract.OperationId);
+                    return existingContract;
+                }
+                _logger.LogError("Попытка создания дубликата контракта с OperationId: {OperationId} другой операцией: {OperationId}", existingContract.OperationId, newContract.OperationId);
+            }
+            return newContract;
+        }
+        catch (Exception ex)
         {
-            contract.Insurance = new Insurance
-            {
-                Type = loanApplicationRequest.Insurance.Type,
-                Amount = loanApplicationRequest.Insurance.Amount,
-                Company = loanApplicationRequest.Insurance.Company
-            };
+            _logger.LogError(ex, "Ошибка при создании договора");
+            throw;
         }
-
-        // Сохраняем контракт в базе данных
-        _dbContext.Contracts.Add(contract);
-        await _dbContext.SaveChangesAsync();
-
-        // Публикуем событие с помощью MediatR
-        //TODO: создать событие кредитный договор создан и хэндлер к нему 
-
-        return contract;
     }
 
     public async Task<Contract?> GetContractAsync(Guid contractId)

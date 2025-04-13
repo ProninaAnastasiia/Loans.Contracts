@@ -6,6 +6,6 @@ namespace Loans.Contracts.Services;
 
 public interface IContractService
 {
-    Task<Contract> CreateContractAsync(CreateContractRequestedEvent request, Guid operationId);
+    Task<Contract> CreateContractAsync(CreateContractRequestedEvent request, CancellationToken cancellationToken);
     Task<Contract?> GetContractAsync(Guid contractId);
 }

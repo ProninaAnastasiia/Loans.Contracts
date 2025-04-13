@@ -1,4 +1,5 @@
 .idea
+.Migrations
 bin/
 obj/
 /packages/
