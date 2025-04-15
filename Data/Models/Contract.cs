@@ -25,8 +25,8 @@ public class Contract
     public DateTime? BeginDate { get; set; }
     public DateTime? CloseDate { get; set; }
     public string ContractStatus { get; set; }
-    public Guid CreditIssuanceAccount { get; set; }
-    public Guid DebitFromAccount { get; set; }
+    public Guid? CreditIssuanceAccount { get; set; }
+    public Guid? DebitFromAccount { get; set; }
     public decimal? MonthlyPaymentAmount { get; set; }
     public decimal? TotalPaymentAmount { get; set; }
     public decimal? TotalInterestPaid { get; set; }
