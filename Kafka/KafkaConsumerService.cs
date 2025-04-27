@@ -2,7 +2,7 @@
 using Confluent.Kafka;
 using Loans.Contracts.Handlers;
 using Loans.Contracts.Kafka.Events;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Loans.Contracts.Kafka;
 
@@ -56,12 +56,17 @@ public class KafkaConsumerService : BackgroundService
                 if (result == null) continue;
 
                 _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
-
-                var @event = JsonConvert.DeserializeObject<CreateContractRequestedEvent>(result.Message.Value);
-
-                if (@event != null)
+                
+                var jsonObject = JObject.Parse(result.Message.Value);
+                
+                if (jsonObject.Property("EventType").Value.ToString().Contains("CreateContractRequestedEvent"))
                 {
-                    await _channel.Writer.WriteAsync(@event, stoppingToken);
+                    var @event = jsonObject.ToObject<CreateContractRequestedEvent>();
+                    if (@event != null) await _channel.Writer.WriteAsync(@event, stoppingToken);
+                }
+                else
+                {
+                    _logger.LogWarning("Неизвестный тип события: {Json}", result.Message.Value);
                 }
             }
         }

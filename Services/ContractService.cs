@@ -78,12 +78,8 @@ public class ContractService : IContractService
             }
             else
             {
-                if (newContract.OperationId.Equals(existingContract.OperationId))
-                {
-                    _logger.LogWarning("Повторная попытка создать контракт по OperationId: {OperationId}", existingContract.OperationId);
-                    return existingContract;
-                }
-                _logger.LogError("Попытка создания дубликата контракта с OperationId: {OperationId} другой операцией: {OperationId}", existingContract.OperationId, newContract.OperationId);
+                _logger.LogWarning("Повторная попытка создать контракт по OperationId: {OperationId}", existingContract.OperationId);
+                return existingContract;
             }
             return newContract;
         }

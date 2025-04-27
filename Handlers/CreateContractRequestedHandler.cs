@@ -29,20 +29,20 @@ public class CreateContractRequestedHandler : ICreateContractRequestedHandler
 
     public async Task HandleAsync(CreateContractRequestedEvent request, CancellationToken cancellationToken)
     {
+        var topic = _config["Kafka:Topics:CreateContractResult"];
         try
         {
             var contract = await _сontractService.CreateContractAsync(request, cancellationToken);
             var @event = _mapper.Map<DraftContractCreatedEvent>(contract);
             var jsonMessage = JsonConvert.SerializeObject(@event);
-            var topic = _config["Kafka:Topics:DraftContractCreated"];
             await _producer.PublishAsync(topic, jsonMessage);
+            
         }
         catch (Exception e)
         {
             _logger.LogError("Failed to create contract. OperationId: {request.OperationId}", request.OperationId);
-            var @event = new CreateContractFailedEvent(request.OperationId, e.Message);
+            var @event = new CreateContractFailedEvent(request.OperationId, e.Message, e.InnerException?.Message);
             var jsonMessage = JsonConvert.SerializeObject(@event);
-            var topic = _config["Kafka:Topics:CreateContractFailed"];
             await _producer.PublishAsync(topic, jsonMessage);
         }
     }

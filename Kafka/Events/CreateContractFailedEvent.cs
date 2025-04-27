@@ -1,3 +1,3 @@
 ﻿namespace Loans.Contracts.Kafka.Events;
 
-public record CreateContractFailedEvent(string OperationId, string Error) : EventBase;
+public record CreateContractFailedEvent(Guid OperationId, string Error, string? InnerError) : EventBase;
