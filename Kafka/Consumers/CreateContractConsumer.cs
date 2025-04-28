@@ -1,7 +1,7 @@
 ﻿using System.Threading.Channels;
 using Confluent.Kafka;
-using Loans.Contracts.Handlers;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Handlers;
 using Newtonsoft.Json.Linq;
 
 namespace Loans.Contracts.Kafka.Consumers;
@@ -40,7 +40,7 @@ public class CreateContractConsumer : BackgroundService
         using var consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
         consumer.Subscribe(_configuration["Kafka:Topics:CreateContractRequested"]);
 
-        _logger.LogInformation("KafkaConsumerService запущен.");
+        _logger.LogInformation("KafkaConsumerService CreateContractConsumer запущен.");
         
         // Стартуем воркеры
         for (int i = 0; i < WorkerCount; i++)
@@ -95,7 +95,7 @@ public class CreateContractConsumer : BackgroundService
                 try
                 {
                     using var scope = _serviceProvider.CreateScope();
-                    var handler = scope.ServiceProvider.GetRequiredService<ICreateContractRequestedHandler>();
+                    var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<CreateContractRequestedEvent>>();
                     await handler.HandleAsync(@event, cancellationToken);
                 }
                 catch (Exception ex)
@@ -106,7 +106,5 @@ public class CreateContractConsumer : BackgroundService
             }
         }
     }
-
-    
 }
 

@@ -1,16 +1,11 @@
 ﻿using AutoMapper;
-using Loans.Contracts.Data;
-using Loans.Contracts.Data.Models;
-using Loans.Contracts.Kafka;
 using Loans.Contracts.Kafka.Events;
 using Loans.Contracts.Services;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
-namespace Loans.Contracts.Handlers;
+namespace Loans.Contracts.Kafka.Handlers;
 
-public class CreateContractRequestedHandler : ICreateContractRequestedHandler
+public class CreateContractRequestedHandler : IEventHandler<CreateContractRequestedEvent>
 {
     private readonly IContractService _сontractService;
     private readonly ILogger<CreateContractRequestedHandler> _logger;

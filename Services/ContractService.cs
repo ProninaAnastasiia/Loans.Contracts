@@ -86,7 +86,31 @@ public class ContractService : IContractService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при создании договора");
+            _logger.LogError(ex, "Ошибка при создании договора.");
+            throw;
+        }
+    }
+
+    public async Task UpdateContractScheduleAsync(RepaymentScheduleCalculatedEvent request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var existingContract = await _dbContext.Contracts.FirstOrDefaultAsync(u => u.ContractId.Equals(request.ContractId), cancellationToken);
+            
+            if (existingContract != null)
+            {
+                existingContract.PaymentScheduleId = request.ScheduleId;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                _logger.LogError("Контракта с таким ContractId не существует: {ContractId}", request.ContractId);
+                throw new Exception($"Контракта с таким ContractId не существует: {request.ContractId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обновлении договора.");
             throw;
         }
     }

@@ -1,10 +1,10 @@
 using AutoMapper;
 using Loans.Contracts.Data;
 using Loans.Contracts.Data.Dto;
-using Loans.Contracts.Handlers;
 using Loans.Contracts.Kafka;
 using Loans.Contracts.Kafka.Consumers;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Handlers;
 using Loans.Contracts.Mappers;
 using Loans.Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,19 +16,21 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("Postgres");
 builder.Services.AddDbContext<LoanContractDbContext>(options => options.UseNpgsql(connectionString));
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-builder.Services.AddSingleton<KafkaProducerService>();
 
 builder.Services.AddScoped<IContractService, ContractService>();
 
-builder.Services.AddScoped<ICreateContractRequestedHandler, CreateContractRequestedHandler>();
+builder.Services.AddScoped<IEventHandler<CreateContractRequestedEvent>, CreateContractRequestedHandler>();
+builder.Services.AddScoped<IEventHandler<RepaymentScheduleCalculatedEvent>, RepaymentScheduleCalculatedHandler>();
 
+builder.Services.AddHostedService<UpdateContractConsumer>();
 builder.Services.AddHostedService<CreateContractConsumer>();
 
+builder.Services.AddSingleton<KafkaProducerService>();
+
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
