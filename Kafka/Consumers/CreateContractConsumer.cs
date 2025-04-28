@@ -4,17 +4,17 @@ using Loans.Contracts.Handlers;
 using Loans.Contracts.Kafka.Events;
 using Newtonsoft.Json.Linq;
 
-namespace Loans.Contracts.Kafka;
+namespace Loans.Contracts.Kafka.Consumers;
 
-public class KafkaConsumerService : BackgroundService
+public class CreateContractConsumer : BackgroundService
 {
     private readonly IConfiguration _configuration;
-    private readonly ILogger<KafkaConsumerService> _logger;
+    private readonly ILogger<CreateContractConsumer> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly Channel<CreateContractRequestedEvent> _channel;
     private const int WorkerCount = 10;
 
-    public KafkaConsumerService(IConfiguration configuration, IServiceProvider serviceProvider, ILogger<KafkaConsumerService> logger)
+    public CreateContractConsumer(IConfiguration configuration, IServiceProvider serviceProvider, ILogger<CreateContractConsumer> logger)
     {
         _configuration = configuration;
         _logger = logger;

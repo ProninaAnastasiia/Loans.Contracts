@@ -69,6 +69,7 @@ public class ContractService : IContractService
                 
                 newContract.Insurance = insurance;
                 newContract.AdditionalTerms = "Дополнительные условия: Досрочное погашение разрешено на сумму не менее половины от запланированного ежемесячного платежа.";
+                newContract.InitialPaymentAmount = newContract.LoanAmount*(decimal)0.15;
                 newContract.LastModificationDate = DateTime.UtcNow;
                 
                 _dbContext.Contracts.Add(newContract);

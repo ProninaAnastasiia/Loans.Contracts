@@ -3,6 +3,7 @@ using Loans.Contracts.Data;
 using Loans.Contracts.Data.Dto;
 using Loans.Contracts.Handlers;
 using Loans.Contracts.Kafka;
+using Loans.Contracts.Kafka.Consumers;
 using Loans.Contracts.Kafka.Events;
 using Loans.Contracts.Mappers;
 using Loans.Contracts.Services;
@@ -26,7 +27,7 @@ builder.Services.AddScoped<IContractService, ContractService>();
 
 builder.Services.AddScoped<ICreateContractRequestedHandler, CreateContractRequestedHandler>();
 
-builder.Services.AddHostedService<KafkaConsumerService>();
+builder.Services.AddHostedService<CreateContractConsumer>();
 
 
 var app = builder.Build();
