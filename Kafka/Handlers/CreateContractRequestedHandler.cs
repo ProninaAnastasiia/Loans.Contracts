@@ -24,7 +24,7 @@ public class CreateContractRequestedHandler : IEventHandler<CreateContractReques
 
     public async Task HandleAsync(CreateContractRequestedEvent request, CancellationToken cancellationToken)
     {
-        var topic = _config["Kafka:Topics:CreateContractResult"];
+        var topic = _config["Kafka:Topics:CreateContractRequested"];
         try
         {
             var contract = await _сontractService.CreateContractAsync(request, cancellationToken);
