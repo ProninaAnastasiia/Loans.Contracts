@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Loans.Contracts.Data;
+using Loans.Contracts.Data.Dto;
 using Loans.Contracts.Data.Models;
 using Loans.Contracts.Kafka.Events;
 using Microsoft.EntityFrameworkCore;
@@ -91,32 +92,48 @@ public class ContractService : IContractService
         }
     }
 
-    public async Task UpdateContractScheduleAsync(RepaymentScheduleCalculatedEvent request, CancellationToken cancellationToken)
+    public async Task UpdateContractAsync(IContractUpdateDto contractUpdateDto, CancellationToken cancellationToken)
     {
         try
         {
-            var existingContract = await _dbContext.Contracts.FirstOrDefaultAsync(u => u.ContractId.Equals(request.ContractId), cancellationToken);
-            
-            if (existingContract != null)
+            var existingContract = await _dbContext.Contracts.FindAsync(new object[] { contractUpdateDto.ContractId }, cancellationToken);
+
+            if (existingContract == null)
             {
-                existingContract.PaymentScheduleId = request.ScheduleId;
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                throw new Exception($"Контракт с ContractId = {contractUpdateDto.ContractId} не найден.");
+            }
+
+            _mapper.Map(contractUpdateDto, existingContract); // AutoMapper обновит только PaymentScheduleId
+
+            // Определение типа DTO и маппинг на основе типа
+            if (contractUpdateDto is ContractPaymentScheduleUpdateDto paymentScheduleDto)
+            {
+                _mapper.Map(paymentScheduleDto, existingContract);  // AutoMapper обновит только PaymentScheduleId
+            }
+            else if (contractUpdateDto is ContractFullLoanValueUpdateDto fullLoanValueDto)
+            {
+                _mapper.Map(fullLoanValueDto, existingContract);  // AutoMapper обновит только FullLoanValue
+            }
+            else if (contractUpdateDto is ContractValuesUpdateDto contractValuesDto)
+            {
+                _mapper.Map(contractValuesDto, existingContract);  // AutoMapper обновит только FullLoanValue
             }
             else
             {
-                _logger.LogError("Контракта с таким ContractId не существует: {ContractId}", request.ContractId);
-                throw new Exception($"Контракта с таким ContractId не существует: {request.ContractId}");
+                throw new ArgumentException($"Неподдерживаемый тип DTO: {contractUpdateDto.GetType().Name}");
             }
+            
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при обновлении договора.");
+            _logger.LogError(ex, $"Ошибка при обновлении контракта с ContractId = {contractUpdateDto.ContractId}.");
             throw;
         }
     }
 
     public async Task<Contract?> GetContractAsync(Guid contractId)
     {
-        return (await _dbContext.Contracts.FindAsync(contractId));
+        return await _dbContext.Contracts.FindAsync(contractId);
     }
 }

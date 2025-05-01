@@ -1,11 +1,11 @@
 using AutoMapper;
 using Loans.Contracts.Data;
 using Loans.Contracts.Data.Dto;
+using Loans.Contracts.Data.Mappers;
 using Loans.Contracts.Kafka;
 using Loans.Contracts.Kafka.Consumers;
 using Loans.Contracts.Kafka.Events;
 using Loans.Contracts.Kafka.Handlers;
-using Loans.Contracts.Mappers;
 using Loans.Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +22,8 @@ builder.Services.AddScoped<IContractService, ContractService>();
 
 builder.Services.AddScoped<IEventHandler<CreateContractRequestedEvent>, CreateContractRequestedHandler>();
 builder.Services.AddScoped<IEventHandler<RepaymentScheduleCalculatedEvent>, RepaymentScheduleCalculatedHandler>();
+builder.Services.AddScoped<IEventHandler<FullLoanValueCalculatedEvent>, FullLoanValueCalculatedHandler>();
+builder.Services.AddScoped<IEventHandler<ContractValuesCalculatedEvent>, ContractValuesCalculatedHandler>();
 
 builder.Services.AddHostedService<UpdateContractConsumer>();
 builder.Services.AddHostedService<CreateContractConsumer>();

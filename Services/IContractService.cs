@@ -7,6 +7,6 @@ namespace Loans.Contracts.Services;
 public interface IContractService
 {
     Task<Contract> CreateContractAsync(CreateContractRequestedEvent request, CancellationToken cancellationToken);
-    Task UpdateContractScheduleAsync(RepaymentScheduleCalculatedEvent request, CancellationToken cancellationToken);
+    Task UpdateContractAsync(IContractUpdateDto contractUpdateDto, CancellationToken cancellationToken);
     Task<Contract?> GetContractAsync(Guid contractId);
 }

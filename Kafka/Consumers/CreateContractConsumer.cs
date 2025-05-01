@@ -64,16 +64,16 @@ public class CreateContractConsumer : BackgroundService
                     var @event = jsonObject.ToObject<CreateContractRequestedEvent>();
                     if (@event != null) await _channel.Writer.WriteAsync(@event, stoppingToken);
                 }
-                else
-                {
-                    _logger.LogWarning("Неизвестный тип события: {Json}", result.Message.Value);
-                }
             }
         }
         catch (KafkaException ex)
         {
             _logger.LogError(ex, "Kafka временно недоступна или ошибка получения сообщения.");
             await Task.Delay(1000, stoppingToken); // Ждем и пытаемся снова
+        }
+        catch (OperationCanceledException)
+        {
+            // Ничего не делаем — это ожидаемое поведение при остановке
         }
         catch (Exception ex)
         {

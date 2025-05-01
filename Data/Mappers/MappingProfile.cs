@@ -3,7 +3,7 @@ using Loans.Contracts.Data.Dto;
 using Loans.Contracts.Data.Models;
 using Loans.Contracts.Kafka.Events;
 
-namespace Loans.Contracts.Mappers;
+namespace Loans.Contracts.Data.Mappers;
 
 public class MappingProfile : Profile
 {
@@ -13,5 +13,12 @@ public class MappingProfile : Profile
         CreateMap<Contract, DraftContractCreatedEvent>();
         CreateMap<CreateContractRequestedEvent, Contract>()
             .ForMember(dest => dest.ContractId, opt => opt.MapFrom(_ => Guid.NewGuid()));
+        CreateMap<ContractPaymentScheduleUpdateDto, Contract>()
+            .ForMember(dest => dest.ContractId, opt => opt.Ignore());
+        CreateMap<ContractFullLoanValueUpdateDto, Contract>()
+            .ForMember(dest => dest.ContractId, opt => opt.Ignore());
+        CreateMap<ContractValuesUpdateDto, Contract>()
+            .ForMember(dest => dest.ContractId, opt => opt.Ignore());
+
     }
 }
