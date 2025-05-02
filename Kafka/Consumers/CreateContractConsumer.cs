@@ -54,13 +54,12 @@ public class CreateContractConsumer : BackgroundService
             {
                 var result = consumer.Consume(stoppingToken);
                 if (result == null) continue;
-
-                _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
                 
                 var jsonObject = JObject.Parse(result.Message.Value);
                 
                 if (jsonObject.Property("EventType").Value.ToString().Contains("CreateContractRequestedEvent"))
                 {
+                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
                     var @event = jsonObject.ToObject<CreateContractRequestedEvent>();
                     if (@event != null) await _channel.Writer.WriteAsync(@event, stoppingToken);
                 }

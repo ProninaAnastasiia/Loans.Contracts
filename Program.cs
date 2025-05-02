@@ -21,9 +21,9 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IContractService, ContractService>();
 
 builder.Services.AddScoped<IEventHandler<CreateContractRequestedEvent>, CreateContractRequestedHandler>();
-builder.Services.AddScoped<IEventHandler<RepaymentScheduleCalculatedEvent>, RepaymentScheduleCalculatedHandler>();
 builder.Services.AddScoped<IEventHandler<FullLoanValueCalculatedEvent>, FullLoanValueCalculatedHandler>();
 builder.Services.AddScoped<IEventHandler<ContractValuesCalculatedEvent>, ContractValuesCalculatedHandler>();
+builder.Services.AddScoped<IEventHandler<ContractScheduleCalculatedEvent>, ContractScheduleCalculatedHandler>();
 
 builder.Services.AddHostedService<UpdateContractConsumer>();
 builder.Services.AddHostedService<CreateContractConsumer>();

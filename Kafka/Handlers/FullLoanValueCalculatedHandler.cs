@@ -38,7 +38,7 @@ public class FullLoanValueCalculatedHandler : IEventHandler<FullLoanValueCalcula
         }
         catch (Exception e)
         {
-            _logger.LogError("Failed to handle ContractScheduleUpdatedEvent. OperationId: {OperationId}. Exception: {e}", updateEvent.OperationId, e.Message);
+            _logger.LogError("Failed to handle FullLoanValueCalculatedEvent. OperationId: {OperationId}. Exception: {e}", updateEvent.OperationId, e.Message);
         }
     }
 }

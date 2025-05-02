@@ -35,7 +35,7 @@ public class CreateContractRequestedHandler : IEventHandler<CreateContractReques
         }
         catch (Exception e)
         {
-            _logger.LogError("Failed to create contract. OperationId: {request.OperationId}", request.OperationId);
+            _logger.LogError("Failed to handle CreateContractRequestedEvent. OperationId: {OperationId}. Exception: {e}", request.OperationId, e.Message);
             var @event = new CreateContractFailedEvent(request.OperationId, e.Message, e.InnerException?.Message);
             var jsonMessage = JsonConvert.SerializeObject(@event);
             await _producer.PublishAsync(topic, jsonMessage);

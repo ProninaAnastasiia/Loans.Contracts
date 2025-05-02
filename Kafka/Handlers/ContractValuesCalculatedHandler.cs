@@ -33,6 +33,7 @@ public class ContractValuesCalculatedHandler : IEventHandler<ContractValuesCalcu
                 FullLoanValue = updateEvent.FullLoanValue
             };
             await _сontractService.UpdateContractAsync(contractUpdateDto, cancellationToken);
+            
             var @event = new ContractValuesUpdatedEvent(updateEvent.ContractId, updateEvent.MonthlyPaymentAmount, 
                 updateEvent.TotalPaymentAmount, updateEvent.TotalInterestPaid, updateEvent.FullLoanValue, updateEvent.OperationId);
             var jsonMessage = JsonConvert.SerializeObject(@event);
@@ -42,7 +43,7 @@ public class ContractValuesCalculatedHandler : IEventHandler<ContractValuesCalcu
         }
         catch (Exception e)
         {
-            _logger.LogError("Failed to handle ContractScheduleUpdatedEvent. OperationId: {OperationId}. Exception: {e}", updateEvent.OperationId, e.Message);
+            _logger.LogError("Failed to handle ContractValuesCalculatedEvent. ContractId: {ContractId}, OperationId: {OperationId}. Exception: {e}", updateEvent.ContractId , updateEvent.OperationId, e.Message);
         }
     }
 }

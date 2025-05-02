@@ -5,14 +5,14 @@ using Newtonsoft.Json;
 
 namespace Loans.Contracts.Kafka.Handlers;
 
-public class RepaymentScheduleCalculatedHandler : IEventHandler<RepaymentScheduleCalculatedEvent>
+public class ContractScheduleCalculatedHandler : IEventHandler<ContractScheduleCalculatedEvent>
 {
     private readonly IContractService _сontractService;
-    private readonly ILogger<RepaymentScheduleCalculatedHandler> _logger;
+    private readonly ILogger<ContractScheduleCalculatedHandler> _logger;
     private readonly IConfiguration _config;
     private KafkaProducerService _producer;
     
-    public RepaymentScheduleCalculatedHandler(IContractService сontractService, ILogger<RepaymentScheduleCalculatedHandler> logger, IConfiguration config, KafkaProducerService producer)
+    public ContractScheduleCalculatedHandler(IContractService сontractService, ILogger<ContractScheduleCalculatedHandler> logger, IConfiguration config, KafkaProducerService producer)
     {
         _сontractService = сontractService;
         _logger = logger;
@@ -20,12 +20,10 @@ public class RepaymentScheduleCalculatedHandler : IEventHandler<RepaymentSchedul
         _producer = producer;
     }
 
-    public async Task HandleAsync(RepaymentScheduleCalculatedEvent updateEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(ContractScheduleCalculatedEvent updateEvent, CancellationToken cancellationToken)
     {
         try
         {
-            //TODO: Свести до одного хэндлера общего события и менять договор одним запросом к БД
-            //TODO: И после генерировать событие типа Контракт готов к подписанию
             var contractUpdateDto = new ContractPaymentScheduleUpdateDto
             {
                 ContractId = updateEvent.ContractId,
@@ -33,7 +31,7 @@ public class RepaymentScheduleCalculatedHandler : IEventHandler<RepaymentSchedul
             };
             await _сontractService.UpdateContractAsync(contractUpdateDto, cancellationToken);
             
-            var @event = new ContractScheduleUpdatedEvent(updateEvent.ContractId, updateEvent.ScheduleId, updateEvent.OperationId);
+            var @event = new ContractScheduleUpdatedEvent(updateEvent.ContractId, updateEvent.ScheduleId,updateEvent.OperationId);
             var jsonMessage = JsonConvert.SerializeObject(@event);
             var topic = _config["Kafka:Topics:UpdateContractRequested"];
 
@@ -41,7 +39,7 @@ public class RepaymentScheduleCalculatedHandler : IEventHandler<RepaymentSchedul
         }
         catch (Exception e)
         {
-            _logger.LogError("Failed to handle RepaymentScheduleCalculatedEvent. OperationId: {OperationId}. Exception: {e}", updateEvent.OperationId, e.Message);
+            _logger.LogError("Failed to handle ContractScheduleCalculatedEvent. ContractId: {ContractId}, OperationId: {OperationId}. Exception: {e}", updateEvent.ContractId , updateEvent.OperationId, e.Message);
         }
     }
 }

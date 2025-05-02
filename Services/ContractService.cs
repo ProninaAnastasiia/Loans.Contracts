@@ -116,7 +116,7 @@ public class ContractService : IContractService
             }
             else if (contractUpdateDto is ContractValuesUpdateDto contractValuesDto)
             {
-                _mapper.Map(contractValuesDto, existingContract);  // AutoMapper обновит только FullLoanValue
+                _mapper.Map(contractValuesDto, existingContract);
             }
             else
             {

@@ -40,19 +40,17 @@ public class UpdateContractConsumer : BackgroundService
                 var result = consumer.Consume(stoppingToken);
                 if (result == null) continue;
 
-                _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
-
                 var jsonObject = JObject.Parse(result.Message.Value);
 
-                //TODO: Принимать общее событие для расчета необходимых для договора полей и менять их одним апдейтом в БД! 
-                // Определяем тип события по наличию определенных свойств
-                if (jsonObject.Property("EventType").Value.ToString().Contains("RepaymentScheduleCalculatedEvent"))
+                if (jsonObject.Property("EventType").Value.ToString().Contains("ContractScheduleCalculatedEvent"))
                 {
-                    var @event = jsonObject.ToObject<RepaymentScheduleCalculatedEvent>();
-                    if (@event != null) await ProcessRepaymentScheduleCalculatedEventAsync(@event, stoppingToken);
+                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
+                    var @event = jsonObject.ToObject<ContractScheduleCalculatedEvent>();
+                    if (@event != null) await ProcessContractScheduleCalculatedEventAsync(@event, stoppingToken);
                 }
                 if (jsonObject.Property("EventType").Value.ToString().Contains("ContractValuesCalculatedEvent"))
                 {
+                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
                     var @event = jsonObject.ToObject<ContractValuesCalculatedEvent>();
                     if (@event != null) await ProcessContractValuesCalculatedEventAsync(@event, stoppingToken);
                 }
@@ -77,17 +75,17 @@ public class UpdateContractConsumer : BackgroundService
         }
     }
     
-    private async Task ProcessRepaymentScheduleCalculatedEventAsync(RepaymentScheduleCalculatedEvent @event, CancellationToken cancellationToken)
+    private async Task ProcessContractScheduleCalculatedEventAsync(ContractScheduleCalculatedEvent @event, CancellationToken cancellationToken)
     {
         try
         {
             using var scope = _serviceProvider.CreateScope();
-            var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<RepaymentScheduleCalculatedEvent>>();
+            var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<ContractScheduleCalculatedEvent>>();
             await handler.HandleAsync(@event, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при обработке события RepaymentScheduleCalculatedEvent: {EventId}, {OperationId}", @event.EventId, @event.OperationId);
+            _logger.LogError(ex, "Ошибка при обработке события ContractScheduleCalculatedEvent: {EventId}, {OperationId}", @event.EventId, @event.OperationId);
             // Тут можно реализовать retry или логирование в dead-letter-topic
         }
     }
