@@ -2,6 +2,8 @@
 using Loans.Contracts.Data.Dto;
 using Loans.Contracts.Data.Models;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Events.CreateDraftContract;
+using Loans.Contracts.Kafka.Events.GetContractApproved;
 
 namespace Loans.Contracts.Data.Mappers;
 

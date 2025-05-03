@@ -1,4 +1,4 @@
-﻿namespace Loans.Contracts.Kafka.Events;
+﻿namespace Loans.Contracts.Kafka.Events.GetContractApproved;
 
 public record ContractDetailsResponseEvent(
     Guid ContractId,

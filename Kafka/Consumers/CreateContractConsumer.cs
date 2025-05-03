@@ -1,6 +1,7 @@
 ﻿using System.Threading.Channels;
 using Confluent.Kafka;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Events.CreateDraftContract;
 using Loans.Contracts.Kafka.Handlers;
 using Newtonsoft.Json.Linq;
 

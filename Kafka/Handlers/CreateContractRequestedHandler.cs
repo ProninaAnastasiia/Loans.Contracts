@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Events.CreateDraftContract;
 using Loans.Contracts.Services;
 using Newtonsoft.Json;
 

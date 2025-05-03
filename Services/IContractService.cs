@@ -1,6 +1,7 @@
 ﻿using Loans.Contracts.Data.Dto;
 using Loans.Contracts.Data.Models;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Events.CreateDraftContract;
 
 namespace Loans.Contracts.Services;
 

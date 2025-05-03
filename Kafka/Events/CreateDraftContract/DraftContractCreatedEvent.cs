@@ -1,4 +1,4 @@
-﻿namespace Loans.Contracts.Kafka.Events;
+﻿namespace Loans.Contracts.Kafka.Events.CreateDraftContract;
 
 public record DraftContractCreatedEvent(
     Guid ContractId, Guid ApplicationId, Guid ClientId, Guid DecisionId, DateTime LodgementDate,

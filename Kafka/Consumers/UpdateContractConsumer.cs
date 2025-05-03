@@ -1,5 +1,7 @@
 ﻿using Confluent.Kafka;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Events.CalculateContractValues;
+using Loans.Contracts.Kafka.Events.GetContractApproved;
 using Loans.Contracts.Kafka.Handlers;
 using Newtonsoft.Json.Linq;
 

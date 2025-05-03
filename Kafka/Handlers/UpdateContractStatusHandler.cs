@@ -1,5 +1,6 @@
 ﻿using Loans.Contracts.Data.Dto;
 using Loans.Contracts.Kafka.Events;
+using Loans.Contracts.Kafka.Events.GetContractApproved;
 using Loans.Contracts.Services;
 using Newtonsoft.Json;
 
