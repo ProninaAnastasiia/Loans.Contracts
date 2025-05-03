@@ -19,6 +19,10 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ContractId, opt => opt.Ignore());
         CreateMap<ContractValuesUpdateDto, Contract>()
             .ForMember(dest => dest.ContractId, opt => opt.Ignore());
+        CreateMap<ContractStatusUpdateDto, Contract>()
+            .ForMember(dest => dest.ContractId, opt => opt.Ignore());
+        
+        CreateMap<Contract, ContractDetailsResponseEvent>();
 
     }
 }

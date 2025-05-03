@@ -24,6 +24,8 @@ builder.Services.AddScoped<IEventHandler<CreateContractRequestedEvent>, CreateCo
 builder.Services.AddScoped<IEventHandler<FullLoanValueCalculatedEvent>, FullLoanValueCalculatedHandler>();
 builder.Services.AddScoped<IEventHandler<ContractValuesCalculatedEvent>, ContractValuesCalculatedHandler>();
 builder.Services.AddScoped<IEventHandler<ContractScheduleCalculatedEvent>, ContractScheduleCalculatedHandler>();
+builder.Services.AddScoped<IEventHandler<ContractDetailsRequestedEvent>, GetFullContractHandler>();
+builder.Services.AddScoped<IEventHandler<UpdateContractStatusEvent>, UpdateContractStatusHandler>();
 
 builder.Services.AddHostedService<UpdateContractConsumer>();
 builder.Services.AddHostedService<CreateContractConsumer>();

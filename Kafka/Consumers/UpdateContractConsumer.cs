@@ -54,6 +54,18 @@ public class UpdateContractConsumer : BackgroundService
                     var @event = jsonObject.ToObject<ContractValuesCalculatedEvent>();
                     if (@event != null) await ProcessContractValuesCalculatedEventAsync(@event, stoppingToken);
                 }
+                if (jsonObject.Property("EventType").Value.ToString().Contains("ContractDetailsRequestedEvent"))
+                {
+                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
+                    var @event = jsonObject.ToObject<ContractDetailsRequestedEvent>();
+                    if (@event != null) await ProcessGetFullContractEventAsync(@event, stoppingToken);
+                }
+                if (jsonObject.Property("EventType").Value.ToString().Contains("UpdateContractStatusEvent"))
+                {
+                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
+                    var @event = jsonObject.ToObject<UpdateContractStatusEvent>();
+                    if (@event != null) await ProcessUpdateContractStatusEventAsync(@event, stoppingToken);
+                }
             }
         }
         catch (OperationCanceledException)
@@ -101,6 +113,35 @@ public class UpdateContractConsumer : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обработке события RepaymentScheduleCalculatedEvent: {EventId}, {OperationId}", @event.EventId, @event.OperationId);
+            // Тут можно реализовать retry или логирование в dead-letter-topic
+        }
+    }
+    
+    private async Task ProcessGetFullContractEventAsync(ContractDetailsRequestedEvent @event, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<ContractDetailsRequestedEvent>>();
+            await handler.HandleAsync(@event, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обработке события ContractDetailsRequestedEvent: {EventId}, {OperationId}", @event.EventId, @event.OperationId);
+            // Тут можно реализовать retry или логирование в dead-letter-topic
+        }
+    }
+    private async Task ProcessUpdateContractStatusEventAsync(UpdateContractStatusEvent @event, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<UpdateContractStatusEvent>>();
+            await handler.HandleAsync(@event, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обработке события UpdateContractStatusEvent: {EventId}, {OperationId}", @event.EventId, @event.OperationId);
             // Тут можно реализовать retry или логирование в dead-letter-topic
         }
     }

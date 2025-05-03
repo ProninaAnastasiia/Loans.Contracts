@@ -103,26 +103,8 @@ public class ContractService : IContractService
                 throw new Exception($"Контракт с ContractId = {contractUpdateDto.ContractId} не найден.");
             }
 
-            _mapper.Map(contractUpdateDto, existingContract); // AutoMapper обновит только PaymentScheduleId
+            _mapper.Map(contractUpdateDto, existingContract); // AutoMapper обновит только нужные поля в контракте
 
-            // Определение типа DTO и маппинг на основе типа
-            if (contractUpdateDto is ContractPaymentScheduleUpdateDto paymentScheduleDto)
-            {
-                _mapper.Map(paymentScheduleDto, existingContract);  // AutoMapper обновит только PaymentScheduleId
-            }
-            else if (contractUpdateDto is ContractFullLoanValueUpdateDto fullLoanValueDto)
-            {
-                _mapper.Map(fullLoanValueDto, existingContract);  // AutoMapper обновит только FullLoanValue
-            }
-            else if (contractUpdateDto is ContractValuesUpdateDto contractValuesDto)
-            {
-                _mapper.Map(contractValuesDto, existingContract);
-            }
-            else
-            {
-                throw new ArgumentException($"Неподдерживаемый тип DTO: {contractUpdateDto.GetType().Name}");
-            }
-            
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
