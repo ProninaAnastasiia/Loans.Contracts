@@ -13,6 +13,7 @@ using Loans.Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +48,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.MapPost("/api/create-contract", async ([FromBody] LoanApplicationRequest application, KafkaProducerService producer, IConfiguration config, IMapper mapper) =>
 {
@@ -68,5 +69,11 @@ app.MapGet("/api/contract/{id}", async (Guid id, IContractService contractServic
 
         return Results.Ok(contract);
     }).WithName("GetContract").WithOpenApi();
+
+// Метрики HTTP
+app.UseHttpMetrics(); 
+
+// Экспонирование метрик на /metrics
+app.MapMetrics();
 
 app.Run();
