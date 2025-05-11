@@ -7,85 +7,40 @@ using Newtonsoft.Json.Linq;
 
 namespace Loans.Contracts.Kafka.Consumers;
 
-public class UpdateContractConsumer : BackgroundService
+public class UpdateContractConsumer : KafkaBackgroundConsumer
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<UpdateContractConsumer> _logger;
-    private readonly IServiceProvider _serviceProvider;
+    public UpdateContractConsumer(
+        IConfiguration config,
+        IServiceProvider serviceProvider,
+        ILogger<UpdateContractConsumer> logger)
+        : base(config, serviceProvider, logger,
+            topic: config["Kafka:Topics:UpdateContractRequested"],
+            groupId: "contract-service-group",
+            consumerName: nameof(UpdateContractConsumer)) { }
 
-    public UpdateContractConsumer(IConfiguration configuration, IServiceProvider serviceProvider, ILogger<UpdateContractConsumer> logger)
+    protected override async Task HandleMessageAsync(JObject message, CancellationToken cancellationToken)
     {
-        _configuration = configuration;
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-    }
+        var eventType = message["EventType"]?.ToString();
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        await Task.Delay(3000, stoppingToken); // дать приложению прогрузиться
-        var consumerConfig = new ConsumerConfig
+        if (eventType?.Contains("ContractScheduleCalculatedEvent") == true)
         {
-            BootstrapServers = _configuration["Kafka:BootstrapServers"],
-            GroupId = "contract-service-group",
-            AutoOffsetReset = AutoOffsetReset.Earliest
-        };
-
-        using var consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
-        consumer.Subscribe(_configuration["Kafka:Topics:UpdateContractRequested"]);
-
-        _logger.LogInformation("KafkaConsumerService UpdateContractConsumer запущен.");
-        
-        try
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                var result = consumer.Consume(stoppingToken);
-                if (result == null) continue;
-
-                var jsonObject = JObject.Parse(result.Message.Value);
-
-                if (jsonObject.Property("EventType").Value.ToString().Contains("ContractScheduleCalculatedEvent"))
-                {
-                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
-                    var @event = jsonObject.ToObject<ContractScheduleCalculatedEvent>();
-                    if (@event != null) await ProcessContractScheduleCalculatedEventAsync(@event, stoppingToken);
-                }
-                if (jsonObject.Property("EventType").Value.ToString().Contains("ContractValuesCalculatedEvent"))
-                {
-                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
-                    var @event = jsonObject.ToObject<ContractValuesCalculatedEvent>();
-                    if (@event != null) await ProcessContractValuesCalculatedEventAsync(@event, stoppingToken);
-                }
-                if (jsonObject.Property("EventType").Value.ToString().Contains("ContractDetailsRequestedEvent"))
-                {
-                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
-                    var @event = jsonObject.ToObject<ContractDetailsRequestedEvent>();
-                    if (@event != null) await ProcessGetFullContractEventAsync(@event, stoppingToken);
-                }
-                if (jsonObject.Property("EventType").Value.ToString().Contains("UpdateContractStatusEvent"))
-                {
-                    _logger.LogInformation("Получено сообщение из Kafka: {Message}", result.Message.Value);
-                    var @event = jsonObject.ToObject<UpdateContractStatusEvent>();
-                    if (@event != null) await ProcessUpdateContractStatusEventAsync(@event, stoppingToken);
-                }
-            }
+            var @event = message.ToObject<ContractScheduleCalculatedEvent>();
+            if (@event != null) await ProcessContractScheduleCalculatedEventAsync(@event, cancellationToken);
         }
-        catch (OperationCanceledException)
+        else if (eventType?.Contains("ContractValuesCalculatedEvent") == true)
         {
-            // Нормальное завершение — ничего не логируем
+            var @event = message.ToObject<ContractValuesCalculatedEvent>();
+            if (@event != null) await ProcessContractValuesCalculatedEventAsync(@event, cancellationToken);
         }
-        catch (KafkaException ex)
+        else if (eventType?.Contains("ContractDetailsRequestedEvent") == true)
         {
-            _logger.LogError(ex, "Kafka временно недоступна или ошибка получения сообщения.");
-            await Task.Delay(1000, stoppingToken); // Ждем и пытаемся снова
+            var @event = message.ToObject<ContractDetailsRequestedEvent>();
+            if (@event != null) await ProcessContractDetailsRequestedEventAsync(@event, cancellationToken);
         }
-        catch (Exception ex)
+        else if (eventType?.Contains("UpdateContractStatusEvent") == true)
         {
-            _logger.LogError(ex, "Ошибка при обработке события.");
-        }
-        finally
-        {
-            consumer.Close();
+            var @event = message.ToObject<UpdateContractStatusEvent>();
+            if (@event != null) await ProcessUpdateContractStatusEventAsync(@event, cancellationToken);
         }
     }
     
@@ -93,7 +48,7 @@ public class UpdateContractConsumer : BackgroundService
     {
         try
         {
-            using var scope = _serviceProvider.CreateScope();
+            using var scope = ServiceProvider.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<ContractScheduleCalculatedEvent>>();
             await handler.HandleAsync(@event, cancellationToken);
         }
@@ -108,7 +63,7 @@ public class UpdateContractConsumer : BackgroundService
     {
         try
         {
-            using var scope = _serviceProvider.CreateScope();
+            using var scope = ServiceProvider.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<ContractValuesCalculatedEvent>>();
             await handler.HandleAsync(@event, cancellationToken);
         }
@@ -119,11 +74,11 @@ public class UpdateContractConsumer : BackgroundService
         }
     }
     
-    private async Task ProcessGetFullContractEventAsync(ContractDetailsRequestedEvent @event, CancellationToken cancellationToken)
+    private async Task ProcessContractDetailsRequestedEventAsync(ContractDetailsRequestedEvent @event, CancellationToken cancellationToken)
     {
         try
         {
-            using var scope = _serviceProvider.CreateScope();
+            using var scope = ServiceProvider.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<ContractDetailsRequestedEvent>>();
             await handler.HandleAsync(@event, cancellationToken);
         }
@@ -137,7 +92,7 @@ public class UpdateContractConsumer : BackgroundService
     {
         try
         {
-            using var scope = _serviceProvider.CreateScope();
+            using var scope = ServiceProvider.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<UpdateContractStatusEvent>>();
             await handler.HandleAsync(@event, cancellationToken);
         }
